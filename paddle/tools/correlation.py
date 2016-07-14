@@ -24,9 +24,8 @@ class CorrelationConfig(ConfigPanel):
         gd.addWidget(valid_levels, 0, 1)
         self.config.add_handler('correlation_levels', valid_levels)
 
-        labels = QListWidget()
-        for l in LEVELS:
-            labels.addItem(l)
+        labels = QComboBox()
+        labels.addItems(LEVELS)
         gd.addWidget(QLabel('Labels'), 0, 2)
         gd.addWidget(labels, 0, 3)
         self.config.add_handler('labels', labels)
@@ -66,7 +65,7 @@ class Correlation(ToolBase):
 
         self.config.set_defaults({
             'vmin': 0.0,
-            'labels': ['Group'],
+            'labels': 'Group',
             'correlation_levels': ['Group','Replicate'],
             'show_scatter': False,
         })
@@ -85,7 +84,7 @@ class Correlation(ToolBase):
         dfm = df.copy()
         dfm = dfm.median(axis=1, level=config['correlation_levels'])
 
-        labels = config['labels'][0] if config['labels'] and dfm.shape[1] < 50 else None
+        labels = config['labels'] if config['labels'] and dfm.shape[1] < 50 else None
 
         fig = padua.visualize.correlation(dfm,
                                           show_scatter=config['show_scatter'],

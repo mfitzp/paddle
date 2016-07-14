@@ -6,6 +6,7 @@ import logging
 import json
 import datetime as dt
 from copy import deepcopy
+from . import utils
 
 frozen = getattr(sys, 'frozen', False)
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
@@ -14,19 +15,11 @@ import matplotlib
 # Used to enforce Qt version via matplotlib, etc.
 os.environ['QT_API'] = 'pyqt5'
 matplotlib.rcParams['backend'] = 'Qt5Agg'
-#matplotlib.rcParams['figure.autolayout'] = True
 
-if sys.platform == 'win32' and sys.executable.split('\\')[-1] == 'pythonw.exe':
+if sys.platform == 'win32' and frozen:
     # Dump all output when running without a console; otherwise will hang
     sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
-    frozen = True
-
-elif sys.version_info < (3, 0) and ON_RTD is False:  # Python 2 only; unicode output fixes
-    import codecs
-    UTF8Writer = codecs.getwriter('utf8')
-    sys.stdout = UTF8Writer(sys.stdout)
-    reload(sys).setdefaultencoding('utf8')
 
 if frozen:
     logging.basicConfig(level=logging.INFO)
@@ -41,13 +34,13 @@ import requests
 from .globals import settings, config
 
 from . import ui
-from . import utils
+
 
 # Translation (@default context)
 from .translate import tr
 
 
-__version__ = open(os.path.join(utils.basedir, 'VERSION'), 'rU').read()
+__version__ = 0.1
 
 from . import tools
 from .tools import ( import_data, localization, amino_acids, rank_intensity,
@@ -81,7 +74,7 @@ class MainWindow(QMainWindow):
         #  UI setup etc
         self.menuBars = {
             'file': self.menuBar().addMenu(tr('&File')),
-            'help': self.menuBar().addMenu(tr('&Help')),
+            #'help': self.menuBar().addMenu(tr('&Help')),
         }
 
         # TOOLBAR
@@ -96,22 +89,27 @@ class MainWindow(QMainWindow):
         load_dataAction.setStatusTip('Load MaxQuant data file')
         load_dataAction.triggered.connect(self.onLoadData)
         self.t.addAction(load_dataAction)
+        self.menuBars['file'].addAction(load_dataAction)
 
         load_mspAction = QAction(QIcon(os.path.join(utils.scriptdir, 'icons', 'maxquant_msp.png')), tr('Load MaxQuant modifiedSpecificPeptides file…'), self)
         load_mspAction.setStatusTip('Load MaxQuant modifiedSpecificPeptides file')
         load_mspAction.triggered.connect(self.onLoadMsp)
         self.t.addAction(load_mspAction)
+        self.menuBars['file'].addAction(load_mspAction)
 
         load_designAction = QAction(QIcon(os.path.join(utils.scriptdir, 'icons', 'design.png')), tr('Load experimental design file…'), self)
         load_designAction.setStatusTip('Load experimental design file')
         load_designAction.triggered.connect(self.onLoadDesign)
         self.t.addAction(load_designAction)
+        self.menuBars['file'].addAction(load_designAction)
 
+        self.menuBars['file'].addSeparator()
 
         save_dataAction = QAction(QIcon(os.path.join(utils.scriptdir, 'icons', 'data-save.png')), tr('Save processed data…'), self)
         save_dataAction.setStatusTip('Save processed data')
         save_dataAction.triggered.connect(self.onSaveData)
         self.t.addAction(save_dataAction)
+        self.menuBars['file'].addAction(save_dataAction)
 
 
         self.addToolBar(self.t)
@@ -123,14 +121,18 @@ class MainWindow(QMainWindow):
         save_imageAction.setStatusTip('Save current figure')
         save_imageAction.triggered.connect(self.onLoadData)
         self.t.addAction(save_imageAction)
+        self.menuBars['file'].addAction(save_imageAction)
 
         save_all_imageAction = QAction(QIcon(os.path.join(utils.scriptdir, 'icons', 'image-x-generic-stack.png')), tr('Save all figures…'), self)
         save_all_imageAction.setStatusTip('Save all figures')
         save_all_imageAction.triggered.connect(self.onSaveAllImage)
         self.t.addAction(save_all_imageAction)
+        self.menuBars['file'].addAction(save_all_imageAction)
 
         self.addToolBar(self.t)
 
+
+        self.menuBars['file'].addSeparator()
 
         self.t = QToolBar('Configuration')
         self.t.setIconSize(QSize(22, 22))
@@ -139,11 +141,14 @@ class MainWindow(QMainWindow):
         load_configAction.setStatusTip('Load tool settings and configuration')
         load_configAction.triggered.connect(self.onLoadConfig)
         self.t.addAction(load_configAction)
+        self.menuBars['file'].addAction(load_configAction)
 
         save_configAction = QAction(QIcon(os.path.join(utils.scriptdir, 'icons', 'config-save.png')), tr('Save configuration…'), self)
         save_configAction.setStatusTip('Save current tool settings and configuration')
         save_configAction.triggered.connect(self.onSaveConfig)
         self.t.addAction(save_configAction)
+        self.menuBars['file'].addAction(save_configAction)
+
         self.addToolBar(self.t)
 
         # INIT PLUGINS AND TOOLS
@@ -198,19 +203,21 @@ class MainWindow(QMainWindow):
             # then apply this mask
             if tn == 0:
                 import_data = self.tools[0]
-                df = import_data.data['data']['df']
-                is_mod_data = any('___' in c for c in df.columns)
+                if 'data' in import_data.data and 'df' in import_data.data['data']:
 
-                if is_mod_data:
-                    enable = [True, True,  True,  True, True, True, True, True, None]
-                else:
-                    enable = [True, False, False, True, True, True, True, True, None]
+                    df = import_data.data['data']['df']
+                    is_mod_data = any('___' in c for c in df.columns)
 
-                for n, s in enumerate(enable):
-                    if s is True:
-                        self.tools[n].enable()
-                    elif s is False:
-                        self.tools[n].disable()
+                    if is_mod_data:
+                        enable = [True, True,  True,  True, True, True, True, True, None]
+                    else:
+                        enable = [True, False, False, True, True, True, True, True, None]
+
+                    for n, s in enumerate(enable):
+                        if s is True:
+                            self.tools[n].enable()
+                        elif s is False:
+                            self.tools[n].disable()
 
             if tn == -1:
                 enrichment = self.tools[-1]
@@ -305,8 +312,6 @@ class MainWindow(QMainWindow):
         self.threadpool = QThreadPool()
         logging.info("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
-        # Trigger finalise once we're back to the event loop
-        self._init_timer1 = QTimer.singleShot(500, self.post_start_test)
 
 
     # FIXME: fugly wrapper to allow set tool on change
@@ -495,11 +500,6 @@ class MainWindow(QMainWindow):
             }
             # Send data to server;
             # http://register.pathomx.org POST
-
-    def post_start_test(self):
-        return
-        self.tools[0].config.set('filename',r'D:\Piero_Jurkat\txt\Phospho (STY)Sites.txt')
-        self.tools[0].run_manual()
 
     def onAbout(self):
         dlg = ui.DialogAbout(self)

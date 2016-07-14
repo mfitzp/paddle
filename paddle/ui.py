@@ -28,10 +28,7 @@ try:
 except:
     unicode = str
 
-if ON_RTD or USE_QT_PY == PYQT5:
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-elif USE_QT_PY == PYQT4:
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from matplotlib.pyplot import Figure
 import matplotlib.pyplot as plt

@@ -36,8 +36,7 @@ class ToolBase(QObject):
     '''
 
     is_manual_runnable = True
-
-    is_auto_runnable = True
+    is_auto_runnable = False
     is_auto_rerunnable = True
     is_disableable = True
 
@@ -132,35 +131,15 @@ class ToolBase(QObject):
 
         buttons = []
 
-        if self.is_disableable:
-            disable = QPushButton(QIcon(os.path.join(utils.scriptdir, 'icons', 'cross.png')), 'Disable')
-            disable.setToolTip('Disable this tool')
-            disable.pressed.connect(self.disable)
-            buttons.append(disable)
-
         reset = QPushButton(QIcon(os.path.join(utils.scriptdir, 'icons', 'arrow-turn-180-left.png')), 'Reset to defaults')
         reset.setToolTip('Reset to defaults')
         reset.pressed.connect(self.reset)
         buttons.append(reset)
 
-        undo = QPushButton(QIcon(os.path.join(utils.scriptdir, 'icons', 'arrow-turn-180-left.png')), 'Undo')
-        undo.setToolTip('Undo recent changes')
-        undo.pressed.connect(self.undo)
-        buttons.append(undo)
-
-        if self.is_auto_runnable:
-            auto = QPushButton(QIcon(os.path.join(utils.scriptdir, 'icons', 'lightning.png')), 'Auto')
-            auto.setToolTip('Auto-update spectra when settings change')
-            auto.setCheckable(True)
-            auto.pressed.connect(self.run_manual)
-            self.config.add_handler('auto_run_on_config_change', auto)
-            buttons.append(auto)
-
-        if self.is_manual_runnable:
-            apply = QPushButton(QIcon(os.path.join(utils.scriptdir, 'icons', 'play.png')), 'Apply')
-            apply.setToolTip('Apply current settings to spectra')
-            apply.pressed.connect(self.run_manual)
-            buttons.append(apply)
+        apply = QPushButton(QIcon(os.path.join(utils.scriptdir, 'icons', 'play.png')), 'Apply')
+        apply.setToolTip('Apply current settings to spectra')
+        apply.pressed.connect(self.run_manual)
+        buttons.append(apply)
 
         return buttons
 

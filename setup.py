@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 # coding=utf-8
 import os, sys
-from copy import copy
-
-import collections
 from setuptools import setup, find_packages
 
-__version__ = open('VERSION','rU').read()
-sys.path.insert(0,'paddle')
 setup(
 
     name='Paddle',
-    version=__version__,
+    version='0.5',
     author='Martin Fitzpatrick',
     author_email='martin.fitzpatrick@gmail.com',
     url='https://github.com/mfitzp/paddle',
@@ -46,7 +41,6 @@ setup(
             'numpy>=1.5.0',
             'scipy>=0.14.0',
             'pyqtconfig',
-            'nmrglue',
             'matplotlib',
             'padua',
             ],

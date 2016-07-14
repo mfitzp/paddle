@@ -47,8 +47,8 @@ class Enrichment(ToolBase):
 
     shortname = 'enrichment'
 
-    is_manual_runnable = False
-    is_auto_runnable = True
+    is_manual_runnable = True
+    is_auto_runnable = False
     is_auto_rerunnable = False
     is_disableable = False
 
